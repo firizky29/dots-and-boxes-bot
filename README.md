@@ -7,7 +7,7 @@ This repository contains python based interactive Dots-and-Boxes game.
 
 ```
 git clone https://github.com/AbdiHaryadi/Dots-and-Boxes.git
-cd Dots-and-Boxes
+cd dots-and-boxes-bot
 python main.py
 ```
 
