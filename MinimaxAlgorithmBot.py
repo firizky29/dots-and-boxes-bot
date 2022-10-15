@@ -6,7 +6,7 @@ from Bot import Bot
 class MinimaxBot(Bot):
     def __init__(self, isPlayer1: bool):
         # var self.OPT: Group -> GameAction
-        # var self.DELTA: Group -> Value of State yang didapt di masa depan.
+        # var self.DELTA: Group -> Value of State yang didapat di masa depan.
         # isPlayer1
         self.OPT = [None for i in range(2**24)]
         self.DELTA = [-10 for i in range(2**24)]
@@ -44,6 +44,41 @@ class MinimaxBot(Bot):
                 if abs(state.board_status[i, j]) != 4:
                     return False
         return True
+
+    
+    def current_utility(self, state: GameState) -> int:
+        """
+        menghitung nilai utility sementara dari state saat ini, yaitu
+        = selisih box player - box lawan
+        """
+        [y, x] = state.board_status.shape
+        skor_1 = 0
+        skor_2 = 0
+        for i in range(y):
+            for j in range(x):
+                if state.board_status[i, j] == 4:
+                    skor_2 += 1
+                elif state.board_status[i, j] == -4:
+                    skor_1 += 1
+        if(self.isPlayer1):
+            return skor_1 - skor_2
+        else:
+            return skor_2 - skor_1
+
+    def value(self, state: GameState) -> int:
+        """
+        Mengembalikan value/utilitas akhir yang didapat bot ketika kedua player bermain optimal.
+        Prasyarat: DELTA[group(state)] sudah terisi
+        """
+        if(self.terminal_test(state)):
+            self.DELTA[self.group(state)] = 0
+            return self.current_utility(state)
+        val = self.current_utility(state)
+        if(state.isPlayer1 == self.isPlayer1):
+            val += self.DELTA[self.group(state)]
+        else:
+            val -= self.DELTA[self.group(state)]
+        return val
 
     
     """
