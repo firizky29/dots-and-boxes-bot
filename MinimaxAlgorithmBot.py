@@ -1,7 +1,9 @@
+from os import stat
 from GameAction import GameAction
 from GameState import GameState
+from Bot import Bot
 
-class MinimaxBot:
+class MinimaxBot(Bot):
     def __init__(self, isPlayer1: bool):
         # var self.OPT: Group -> GameAction
         # var self.DELTA: Group -> Value of State yang didapt di masa depan.
@@ -27,6 +29,21 @@ class MinimaxBot:
                     group_s += 1<<ct
                 ct +=1
         return group_s
+
+    def terminal_test(self, state: GameState) -> bool:
+        # cek apakah state sudah terminal atau belum
+        """
+        Returns true if state is terminal.
+        State disebut terminal apabila setiap kotak sudah terisi 
+        yang dalam hal ini status == 4 untuk setiap kolom dan baris.
+        """
+        [y, x] = state.board_status.shape
+
+        for i in range(y):
+            for j in range(x):
+                if abs(state.board_status[i, j]) != 4:
+                    return False
+        return True
 
     
     """
