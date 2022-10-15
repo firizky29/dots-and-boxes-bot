@@ -133,6 +133,77 @@ class MinimaxBot(Bot):
         self.OPT[self.group(state)] = act_OPT
         self.DELTA[self.group(state)] = state_value - self.current_utility(state)
         return act_OPT
+
+    
+    def get_next_state(self, state: GameState, action: GameAction) -> GameState:
+        # return state baru
+        """
+        Returns new state based on current state and action.
+        """
+        action_type = action.action_type
+        x, y = action.position
+
+        next_state = GameState(state.board_status, state.row_status, state.col_status, state.player1_turn)
+        
+
+        raise NotImplementedError()
+    
+    def Min_state(self, state: GameState, alpha: int, beta: int) -> GameAction:
+        """
+        Mengembalikan aksi yang optimal untuk player 2 yaitu meminimalkan (box player 1 - box player 2).
+        """
+        if(self.OPT[self.group(state)] is not None):
+            return self.OPT[self.group(state)]
+        if(self.terminal_test(state)):
+            self.DELTA[self.group(state)] = 0
+            return None
+        state_value = 10
+        act_OPT = None
+        [yr, xr] = state.row_status.shape
+        [yc, xc] = state.col_status.shape
+        for i in range(yr):
+            for j in range(xr):
+                if (state.row_status[i][j]==0):
+                    next_state = self.get_next_state(state, GameAction("row", (i,j)))
+                    if(next_state.player1_turn):
+                        self.Max_state(next_state, alpha, beta)
+                    else:
+                        self.Min_state(next_state, alpha, beta)
+                    next_value = self.value(next_state)
+                    if(next_value < state_value):
+                        state_value = next_value
+                        act_OPT = GameAction("row", (i,j))
+                    if(state_value <= alpha): 
+                        # self.OPT[self.group(state)] = act_OPT
+                        # self.DELTA[self.group(state)] = state_value - self.current_utility(state)
+                        return act_OPT
+                    beta = min(beta, state_value)
+        
+        for i in range(yc):
+            for j in range(xc):
+                if(state.col_status[i][j]==0):
+                    next_state = self.get_next_state(state, GameAction("col", (i,j)))
+                    if(next_state.player1_turn):
+                        self.Max_state(next_state, alpha, beta)
+                    else:
+                        self.Min_state(next_state, alpha, beta)
+                    next_value = self.value(next_state)
+                    if(next_value < state_value):
+                        state_value = next_value
+                        act_OPT = GameAction("col", (i,j))
+                    if(state_value <= alpha):
+                        if(i==yc-1 and j==xc-1):
+                            self.OPT[self.group(state)] = act_OPT
+                            self.DELTA[self.group(state)] = state_value - self.current_utility(state)
+                        # self.OPT[self.group(state)] = act_OPT
+                        # self.DELTA[self.group(state)] = state_value - self.current_utility(state)
+                        return act_OPT
+                    beta = min(beta, state_value)
+
+        self.OPT[self.group(state)] = act_OPT
+        self.DELTA[self.group(state)] = state_value - self.current_utility(state)
+        return act_OPT
+
     
     """
     An interface for bot. Inherit it to create your own bots!
