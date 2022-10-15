@@ -13,8 +13,20 @@ class MinimaxBot:
     # fungsi get_result, terminal-test, utility, Max-state, Min-state, group. tambah fungsi value
     # current itu fungsi selish box player- lawan sekarang.
     # actions diganti jadi looping aja
-    # def group(s: GameState) -> Int:
-    #     # 1010000101
+    def group(self, s: GameState) -> int:
+        group_s = 0
+        ct = 0
+        for i in range(4):
+            for j in range(3):
+                if s.row_status[i][j] == 1:
+                    group_s += 1<<ct 
+                ct += 1
+        for i in range(3):
+            for j in range(4):
+                if s.col_status[i][j] == 1:
+                    group_s += 1<<ct
+                ct +=1
+        return group_s
 
     
     """
@@ -34,3 +46,9 @@ mnmx.OPT[3] = GameAction("row", (3,2))
 if(mnmx.OPT[3] is None):
     print("mnmx.OPT[3] is None")
 gs = GameState([[1,-2,4],[1,2,2],[2,4,2]], [[0,0,1],[0,0,1],[0,1,0],[0,1,0]], [[0,1,1,1],[0,1,0,1],[1,1,1,1]], True)
+
+def test_group():
+    gs = GameState([[1,-2,4],[1,2,2],[2,4,2]], [[0,0,1],[0,0,1],[0,1,0],[0,1,0]], [[0,1,1,1],[0,1,0,1],[1,1,1,1]], True)
+    print(bin(mnmx.group(gs)))
+
+test_group()
