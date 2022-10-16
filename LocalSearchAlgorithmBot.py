@@ -1,4 +1,6 @@
+from operator import delitem
 from random import randrange
+import threading
 from GameAction import GameAction
 from GameState import GameState
 from Bot import Bot
@@ -37,80 +39,49 @@ class State:
         (act, (i, j)) = (action.action_type, action.position)
         if(act == 'row'):
             self.row[i][j] = 1
+            if(i>0):
+                self.board[i-1][j] = abs(self.board[i-1][j])+1
+                if not self.is_player1:
+                    self.board[i-1][j] *= -1
             if(i<MAX_ROW_I):
                 self.board[i][j] = abs(self.board[i][j])+1
                 if not self.is_player1:
                     self.board[i][j] *= -1
-            if(i>0):
-                self.board[i][j] = abs(self.board[i-1][j])+1
-                if not self.is_player1:
-                    self.board[i][j] *= -1
-            if(j<MAX_ROW_J):
-                self.board[i][j] = abs(self.board[i][j])+1
-                if not self.is_player1:
-                    self.board[i][j] *= -1
-            if(j>0):
-                self.board[i][j] = abs(self.board[i][j-1])+1
-                if not self.is_player1:
-                    self.board[i][j] *= -1
         else:
             self.col[i][j] = 1
-            if(i<MAX_COL_I):
-                self.board[i][j] = abs(self.board[i][j])+1
-                if not self.is_player1:
-                    self.board[i][j] *= -1
-            if(i>0):
-                self.board[i][j] = abs(self.board[i-1][j])+1
-                if not self.is_player1:
-                    self.board[i][j] *= -1
             if(j<MAX_COL_J):
                 self.board[i][j] = abs(self.board[i][j])+1
                 if not self.is_player1:
                     self.board[i][j] *= -1
             if(j>0):
-                self.board[i][j] = abs(self.board[i][j-1])+1
+                self.board[i][j-1] = abs(self.board[i][j-1])+1
                 if not self.is_player1:
-                    self.board[i][j] *= -1
+                    self.board[i][j-1] *= -1
 
 
     def rollback_action(self, action: GameAction):
         (act, (i, j)) = (action.action_type, action.position)
         if(act == 'row'):
             self.row[i][j] = 0
+            if(i>0):
+                self.board[i-1][j] = abs(self.board[i-1][j])-1
+                if not self.is_player1:
+                    self.board[i-1][j] *= -1
             if(i<MAX_ROW_I):
                 self.board[i][j] = abs(self.board[i][j])-1
                 if not self.is_player1:
                     self.board[i][j] *= -1
-            if(i>0):
-                self.board[i][j] = abs(self.board[i-1][j])-1
-                if not self.is_player1:
-                    self.board[i][j] *= -1
-            if(j<MAX_ROW_J):
-                self.board[i][j] = abs(self.board[i][j])-1
-                if not self.is_player1:
-                    self.board[i][j] *= -1
-            if(j>0):
-                self.board[i][j] = abs(self.board[i][j-1])-1
-                if not self.is_player1:
-                    self.board[i][j] *= -1
         else:
             self.col[i][j] = 0
-            if(i<MAX_COL_I):
-                self.board[i][j] = abs(self.board[i][j])-1
-                if not self.is_player1:
-                    self.board[i][j] *= -1
-            if(i>0):
-                self.board[i][j] = abs(self.board[i-1][j])-1
-                if not self.is_player1:
-                    self.board[i][j] *= -1
             if(j<MAX_COL_J):
                 self.board[i][j] = abs(self.board[i][j])-1
                 if not self.is_player1:
                     self.board[i][j] *= -1
             if(j>0):
-                self.board[i][j] = abs(self.board[i][j-1])-1
+                self.board[i][j-1] = abs(self.board[i][j-1])-1
                 if not self.is_player1:
-                    self.board[i][j] *= -1
+                    self.board[i][j-1] *= -1
+
             
     def update_val(self):
         for i in range(BOX_ROW):
@@ -127,7 +98,12 @@ class LocalSearchBot(Bot):
         self.isPlayer1 = isPlayer1
         self.T = temperature
 
+
     def get_action(self, state: GameState) -> GameAction:
+        # generate all possible actions
+        # restart temperature
+        self.T = BOX_ROW*BOX_ROW*4
+
         (act, final_state) = self.simulated_annealing(state)
         return act
 
@@ -175,8 +151,8 @@ class LocalSearchBot(Bot):
                                 continue
                         possible_action.append(GameAction('row', (i,j)))
         if not all_col_marked:
-            for i in range(MAX_COL_I):
-                for j in range(MAX_COL_J):
+            for i in range(MAX_COL_I+1):
+                for j in range(MAX_COL_J+1):
                     if current.col[i][j] == 0:
                         if(last_action is not None):
                             (act, (x, y)) = (last_action.action_type, last_action.position)
@@ -196,7 +172,7 @@ class LocalSearchBot(Bot):
         while True:
             self.T = self.schedule(t)
             if(self.T == 0):
-                 return (best_action, current)
+                return (best_action, current)
             (best_action, successor) = self.get_successor(current, best_action)
             deltaE = successor.value - current.value
             if deltaE > 0:
