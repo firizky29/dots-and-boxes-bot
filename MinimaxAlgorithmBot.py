@@ -5,7 +5,7 @@ from GameState import GameState
 from Bot import Bot
 
 class MinimaxBot(Bot):
-    def __init__(self, isPlayer1: bool):
+    def __init__(self, isPlayer1: bool = False):
         # var self.OPT: Group -> GameAction
         # var self.DELTA: Group -> Value of State yang didapat di masa depan.
         # isPlayer1
@@ -134,7 +134,6 @@ class MinimaxBot(Bot):
         self.DELTA[self.group(state)] = state_value - self.current_utility(state)
         return act_OPT
 
-    
     def get_next_state(self, state: GameState, action: GameAction) -> GameState:
         # return state baru
         """
@@ -143,10 +142,32 @@ class MinimaxBot(Bot):
         action_type = action.action_type
         x, y = action.position
 
-        next_state = GameState(state.board_status, state.row_status, state.col_status, state.player1_turn)
-        
+        new_state = GameState(state.board_status.copy(), state.row_status.copy(), state.col_status.copy(), state.player1_turn)
+        [ny, nx] = new_state.board_status.shape
+        player_in_turn = -1 if new_state.player1_turn else 1
+        is_get_point = False
 
-        raise NotImplementedError()
+        if y < ny and x < nx:
+            new_state.board_status[y, x] = (abs(new_state.board_status[y, x]) + 1) * player_in_turn
+            if abs(new_state.board_status[y, x]) == 4:
+                is_get_point = True
+        
+        if action_type == "row":
+            new_state.row_status[y, x] = 1
+            if y > 0:
+                new_state.board_status[y-1, x] = (abs(new_state.board_status[y-1, x]) + 1) * player_in_turn
+                if abs(new_state.board_status[y-1 , x]) == 4:
+                    is_get_point = True
+        elif action_type == "col":
+            new_state.col_status[y, x] = 1
+            if x > 0:
+                new_state.board_status[y, x-1] = (abs(new_state.board_status[y, x-1]) + 1) * player_in_turn
+                if abs(new_state.board_status[y, x-1]) == 4:
+                    is_get_point = True
+        
+        decision = not (new_state.player1_turn ^ is_get_point)
+        new_state = new_state._replace(player1_turn=decision)
+        return new_state
     
     def Min_state(self, state: GameState, alpha: int, beta: int) -> GameAction:
         """
