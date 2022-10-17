@@ -1,3 +1,4 @@
+import copy
 from operator import delitem
 from random import randrange
 import threading
@@ -20,17 +21,23 @@ class State:
         [self.nboardx, self.nboardy] = self.board.shape
         [self.nrowx, self.nrowy] = self.row.shape
         [self.ncolx, self.ncoly] = self.col.shape
-        self.value = 0
+
+        # prevent value from being negative
+        self.value = 4*self.nboardx*self.nboardy
 
         # define heuristic value
-        # prevent value from being negative
-        self.value = self.nboardx*self.nboardy*3 
-        for i in range(self.nboardx):
-            for j in range(self.nboardy):
-                if(abs(self.board[i][j]) == 3):
-                    self.value += -3
-                else:
-                    self.value += abs(self.board[i][j])
+        # self.value = self.nboardx*self.nboardy*3 
+        # for i in range(self.nboardx):
+        #     for j in range(self.nboardy):
+        #         if(abs(self.board[i][j]) == 3):
+        #             self.value += -3
+        #         elif(abs(self.board[i][j]) == 4):
+        #             if(self.board[i][j]==-4):
+        #                 self.value += -10
+        #             else:
+        #                 self.value += 10
+        #         else:
+        #             self.value += abs(self.board[i][j])
     
     # ketika state diberi aksi
     # gajelas bgt ini dah T_T
@@ -59,6 +66,7 @@ class State:
 
 
     def rollback_action(self, action: GameAction):
+        self.value = 4*self.nboardx*self.nboardy
         (act, (i, j)) = (action.action_type, action.position)
         if(act == 'row'):
             self.row[i][j] = 0
@@ -82,26 +90,81 @@ class State:
                     self.board[i][j-1] *= -1
 
             
-    def update_val(self):
-        for i in range(self.nboardx):
-            for j in range(self.nboardy):
-                if(abs(self.board[i][j]) == 3):
-                    self.value += -3
-                else:
-                    self.value += abs(self.board[i][j])
+    def update_val(self, action: GameAction):
+        (act, (i, j)) = (action.action_type, action.position)
+        exists_boxes = False
+        if(act == 'row'):
+            if(i>0):
+                if(abs(self.board[i-1][j]) == 4):
+                    exists_boxes = True
+            if(i<self.nrowx-1):
+                if(abs(self.board[i][j]) == 4):
+                    exists_boxes = True
+        else:
+            if(j<self.ncoly-1):
+                if(abs(self.board[i][j]) == 4):
+                    exists_boxes = True
+            if(j>0):
+                if(abs(self.board[i][j-1]) == 4):
+                    exists_boxes = True
+        if(exists_boxes):
+            self.value += 20
+            if(act == 'row'):
+                if(i>0):
+                    if(abs(self.board[i-1][j]) == 3):
+                        self.value += 3
+                if(i<self.nrowx-1):
+                    if(abs(self.board[i][j]) == 3):
+                        self.value += 3
+            else:
+                if(j<self.ncoly-1):
+                    if(abs(self.board[i][j]) == 3):
+                        self.value += 3
+                if(j>0):
+                    if(abs(self.board[i][j-1]) == 3):
+                        self.value += 3
+        else:
+            if(act == 'row'):
+                if(i>0):
+                    if(abs(self.board[i-1][j]) == 3):
+                        self.value -= 3
+                    else:
+                        self.value += abs(self.board[i-1][j])
+                if(i<self.nrowx-1):
+                    if(abs(self.board[i][j]) == 3):
+                        self.value -= 3
+                    else:
+                        self.value += abs(self.board[i][j])
+            else:
+                if(j<self.ncoly-1):
+                    if(abs(self.board[i][j]) == 3):
+                        self.value -= 3
+                    else:
+                        self.value += abs(self.board[i][j])
+                if(j>0):
+                    if(abs(self.board[i][j-1]) == 3):
+                        self.value -= 3
+                    else:
+                        self.value += abs(self.board[i][j-1])
 
     
 class LocalSearchBot(Bot):
     
-    def __init__(self, isPlayer1: bool, temperature: int = 36):
-        self.isPlayer1 = isPlayer1
+    def __init__(self, temperature: float = 100.0):
         self.T = temperature
 
+    def get_best_temperature(self, state:GameState):
+        [nx, ny] = state.board_status.shape
+        cnt = 0
+        for i in range(nx):
+            for j in range(ny):
+                cnt += abs(state.board_status[i][j])
+        return 100-(cnt*100)/36
 
     def get_action(self, state: GameState) -> GameAction:
         # generate all possible actions
         # restart temperature
-        self.T = 36
+        self.T = self.get_best_temperature(state)
         current = GameState(state.board_status.copy(), state.row_status.copy(), state.col_status.copy(), state.player1_turn)
         (act, final_state) = self.simulated_annealing(current)
         return GameAction(act.action_type, (act.position[1], act.position[0]))
@@ -121,21 +184,26 @@ class LocalSearchBot(Bot):
         initial = State(current)
         act = random.choice(self.get_all_possible_action(initial))
         initial.set_action(act)
-        initial.update_val()
+        initial.update_val(act)
 
         return (act, initial)
 
     def get_successor(self, current: State, last_action: GameAction):
-        successor = current
+        successor = copy.deepcopy(current)
         possible_actions = self.get_all_possible_action(successor, last_action)
         if(len(possible_actions)):
             act = random.choice(possible_actions)
             successor.rollback_action(last_action)
             successor.set_action(act)
-            successor.update_val()
+            successor.update_val(act)
             return (act, successor)
         else:
+            successor.rollback_action(last_action)
+            successor.set_action(last_action)
+            successor.update_val(last_action)
             return (last_action, successor)
+
+
 
 
 
@@ -174,19 +242,28 @@ class LocalSearchBot(Bot):
 
         # randomize initial state
         (best_action, current) = self.get_initial_state(initial)
+        last_action = copy.deepcopy(best_action)
 
         t = 1
         while True:
             self.T = self.schedule(t)
+            current_value = current.value
             if(self.T == 0):
                 return (best_action, current)
-            (best_action, successor) = self.get_successor(current, best_action)
-            deltaE = successor.value - current.value
+            
+            (best_action, successor) = self.get_successor(current, last_action)
+            deltaE = successor.value - current_value
+
             if deltaE > 0:
-                current = successor
+                last_action = copy.deepcopy(best_action)
+                current = copy.deepcopy(successor)
             else:
-                if random.uniform(1, math.exp(1)) >= self.probability(deltaE, self.T):
-                    current = successor
+                print(self.probability(deltaE, self.T))
+                if random.uniform(0.0, 1.0) <= self.probability(deltaE, self.T):
+                    last_action = copy.deepcopy(best_action)
+                    current = copy.deepcopy(successor)
+                else:
+                    print("ga ke pilih")
             t += 1
         
     
