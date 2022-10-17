@@ -248,19 +248,25 @@ class LocalSearchBot(Bot):
         while True:
             self.T = self.schedule(t)
             current_value = current.value
+            print(current.board)
+            print("current_value: ", current_value)
             if(self.T == 0):
                 return (best_action, current)
             
             (best_action, successor) = self.get_successor(current, last_action)
             deltaE = successor.value - current_value
 
+
             if deltaE > 0:
                 last_action = copy.deepcopy(best_action)
                 current = copy.deepcopy(successor)
             else:
+                print(self.probability(deltaE, self.T))
                 if random.uniform(0.0, 1.0) <= self.probability(deltaE, self.T):
                     last_action = copy.deepcopy(best_action)
                     current = copy.deepcopy(successor)
+                else:
+                    print("ga ke pilih")
             t += 1
         
     
