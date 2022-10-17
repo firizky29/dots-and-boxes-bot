@@ -8,11 +8,7 @@ import math
 import random
 import numpy as np
 
-BOX_ROW = 3
-MAX_ROW_I = BOX_ROW
-MAX_ROW_J = BOX_ROW-1
-MAX_COL_I = BOX_ROW-1
-MAX_COL_J = BOX_ROW
+
 
 class State:
     
@@ -21,13 +17,16 @@ class State:
         self.row = game_status.row_status.copy()
         self.col = game_status.col_status.copy()
         self.is_player1 = game_status.player1_turn
-        
+        [self.nboardx, self.nboardy] = self.board.shape
+        [self.nrowx, self.nrowy] = self.row.shape
+        [self.ncolx, self.ncoly] = self.col.shape
+        self.value = 0
 
         # define heuristic value
         # prevent value from being negative
-        self.value = BOX_ROW*BOX_ROW*3 
-        for i in range(BOX_ROW):
-            for j in range(BOX_ROW):
+        self.value = self.nboardx*self.nboardy*3 
+        for i in range(self.nboardx):
+            for j in range(self.nboardy):
                 if(abs(self.board[i][j]) == 3):
                     self.value += -3
                 else:
@@ -43,13 +42,13 @@ class State:
                 self.board[i-1][j] = abs(self.board[i-1][j])+1
                 if not self.is_player1:
                     self.board[i-1][j] *= -1
-            if(i<MAX_ROW_I):
+            if(i<self.nrowx-1):
                 self.board[i][j] = abs(self.board[i][j])+1
                 if not self.is_player1:
                     self.board[i][j] *= -1
         else:
             self.col[i][j] = 1
-            if(j<MAX_COL_J):
+            if(j<self.ncoly-1):
                 self.board[i][j] = abs(self.board[i][j])+1
                 if not self.is_player1:
                     self.board[i][j] *= -1
@@ -67,13 +66,13 @@ class State:
                 self.board[i-1][j] = abs(self.board[i-1][j])-1
                 if not self.is_player1:
                     self.board[i-1][j] *= -1
-            if(i<MAX_ROW_I):
+            if(i<self.nrowx-1):
                 self.board[i][j] = abs(self.board[i][j])-1
                 if not self.is_player1:
                     self.board[i][j] *= -1
         else:
             self.col[i][j] = 0
-            if(j<MAX_COL_J):
+            if(j<self.ncoly-1):
                 self.board[i][j] = abs(self.board[i][j])-1
                 if not self.is_player1:
                     self.board[i][j] *= -1
@@ -84,8 +83,8 @@ class State:
 
             
     def update_val(self):
-        for i in range(BOX_ROW):
-            for j in range(BOX_ROW):
+        for i in range(self.nboardx):
+            for j in range(self.nboardy):
                 if(abs(self.board[i][j]) == 3):
                     self.value += -3
                 else:
@@ -94,7 +93,7 @@ class State:
     
 class LocalSearchBot(Bot):
     
-    def __init__(self, isPlayer1: bool, temperature: int = BOX_ROW*BOX_ROW*4):
+    def __init__(self, isPlayer1: bool, temperature: int = 36):
         self.isPlayer1 = isPlayer1
         self.T = temperature
 
@@ -102,10 +101,10 @@ class LocalSearchBot(Bot):
     def get_action(self, state: GameState) -> GameAction:
         # generate all possible actions
         # restart temperature
-        self.T = BOX_ROW*BOX_ROW*4
-
-        (act, final_state) = self.simulated_annealing(state)
-        return act
+        self.T = 36
+        current = GameState(state.board_status.copy(), state.row_status.copy(), state.col_status.copy(), state.player1_turn)
+        (act, final_state) = self.simulated_annealing(current)
+        return GameAction(act.action_type, (act.position[1], act.position[0]))
 
     
     def probability(self, deltaE, temperature):
@@ -128,21 +127,29 @@ class LocalSearchBot(Bot):
 
     def get_successor(self, current: State, last_action: GameAction):
         successor = current
-        successor.rollback_action(last_action)
-        act = random.choice(self.get_all_possible_action(successor, last_action))
-        successor.set_action(act)
-        successor.update_val()
+        possible_actions = self.get_all_possible_action(successor, last_action)
+        if(len(possible_actions)):
+            act = random.choice(possible_actions)
+            successor.rollback_action(last_action)
+            successor.set_action(act)
+            successor.update_val()
+            return (act, successor)
+        else:
+            return (last_action, successor)
 
-        return (act, successor)
 
 
     def get_all_possible_action(self, current: State, last_action = None) -> list:
         all_row_marked = np.all(current.row == 1)
         all_col_marked = np.all(current.col == 1)
+
+        [nrowx, nrowy] = current.row.shape
+        [ncolx, ncoly] = current.col.shape
+
         possible_action = []
         if not all_row_marked:
-            for i in range(MAX_ROW_I):
-                for j in range(MAX_ROW_J):
+            for i in range(nrowx):
+                for j in range(nrowy):
                     if current.row[i][j] == 0:
                         if(last_action is not None):
                             (act, (x, y)) = (last_action.action_type, last_action.position)
@@ -151,8 +158,8 @@ class LocalSearchBot(Bot):
                                 continue
                         possible_action.append(GameAction('row', (i,j)))
         if not all_col_marked:
-            for i in range(MAX_COL_I+1):
-                for j in range(MAX_COL_J+1):
+            for i in range(ncolx):
+                for j in range(ncoly):
                     if current.col[i][j] == 0:
                         if(last_action is not None):
                             (act, (x, y)) = (last_action.action_type, last_action.position)
