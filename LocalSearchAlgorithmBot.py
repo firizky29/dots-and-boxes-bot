@@ -258,12 +258,9 @@ class LocalSearchBot(Bot):
                 last_action = copy.deepcopy(best_action)
                 current = copy.deepcopy(successor)
             else:
-                print(self.probability(deltaE, self.T))
                 if random.uniform(0.0, 1.0) <= self.probability(deltaE, self.T):
                     last_action = copy.deepcopy(best_action)
                     current = copy.deepcopy(successor)
-                else:
-                    print("ga ke pilih")
             t += 1
         
     
