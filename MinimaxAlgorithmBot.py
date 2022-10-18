@@ -83,7 +83,7 @@ class MinimaxBot(Bot):
         """
         Mengembalikan aksi yang optimal untuk player 1 yaitu memaksimalkan (box player 1 - box player 2).
         """
-        print(state)
+        # print(state)
         if(self.OPT[self.group(state)] is not None):
             return self.OPT[self.group(state)]
         if(self.terminal_test(state)):
@@ -134,6 +134,9 @@ class MinimaxBot(Bot):
         
         self.OPT[self.group(state)] = act_OPT
         self.DELTA[self.group(state)] = state_value - self.current_utility(state)
+        print(state)
+        print("Optimal: ", end="")
+        print(self.OPT[self.group(state)])
         return act_OPT
 
     def get_next_state(self, state: GameState, action: GameAction) -> GameState:
@@ -142,7 +145,7 @@ class MinimaxBot(Bot):
         Returns new state based on current state and action.
         """
         action_type = action.action_type
-        x, y = action.position
+        y, x = action.position
 
         new_state = GameState(state.board_status.copy(), state.row_status.copy(), state.col_status.copy(), state.player1_turn)
         [ny, nx] = new_state.board_status.shape
@@ -175,8 +178,8 @@ class MinimaxBot(Bot):
         """
         Mengembalikan aksi yang optimal untuk player 2 yaitu meminimalkan (box player 1 - box player 2).
         """
-        print(state)
-        sleep(5)
+        # print(state)
+        # sleep(5)
         if(self.OPT[self.group(state)] is not None):
             return self.OPT[self.group(state)]
         if(self.terminal_test(state)):
@@ -227,6 +230,9 @@ class MinimaxBot(Bot):
 
         self.OPT[self.group(state)] = act_OPT
         self.DELTA[self.group(state)] = state_value - self.current_utility(state)
+        print(state)
+        print("Optimal: ", end="")
+        print(self.OPT[self.group(state)])        
         return act_OPT
 
     
@@ -243,23 +249,88 @@ class MinimaxBot(Bot):
         else:
             return self.Min_state(state,-10,10)
 
-mnmx = MinimaxBot(False)
-if(mnmx.OPT[3] is None):
-    print("mnmx.OPT[3] is None")
-mnmx.OPT[3] = GameAction("row", (3,2))
-if(mnmx.OPT[3] is None):
-    print("mnmx.OPT[3] is None")
-gs = GameState([[1,-2,4],[1,2,2],[2,4,2]], [[0,0,1],[0,0,1],[0,1,0],[0,1,0]], [[0,1,1,1],[0,1,0,1],[1,1,1,1]], True)
+# mnmx = MinimaxBot(False)
+# if(mnmx.OPT[3] is None):
+#     print("mnmx.OPT[3] is None")
+# mnmx.OPT[3] = GameAction("row", (3,2))
+# if(mnmx.OPT[3] is None):
+#     print("mnmx.OPT[3] is None")
+# gs = GameState([[1,-2,4],[1,2,2],[2,4,2]], [[0,0,1],[0,0,1],[0,1,0],[0,1,0]], [[0,1,1,1],[0,1,0,1],[1,1,1,1]], True)
 
 def test_group():
     gs = GameState([[1,-2,4],[1,2,2],[2,4,2]], [[0,0,1],[0,0,1],[0,1,0],[0,1,0]], [[0,1,1,1],[0,1,0,1],[1,1,1,1]], True)
     print(bin(mnmx.group(gs)))
 
-test_group()
+# test_group()
 
 def test_current():
     board_status = np.array([[1,-2,4],[1,2,2],[2,4,2]])
     gs = GameState(board_status, [[0,0,1],[0,0,1],[0,1,0],[0,1,0]], [[0,1,1,1],[0,1,0,1],[1,1,1,1]], True)
     print(mnmx.current_utility(gs))
 
-test_current()
+def test_step3():
+    mnmx = MinimaxBot(True)
+    board_status = np.array([[2,0,0],[1,0,0],[0,0,0]])
+    row_status = np.array([[1,0,0],[1,0,0],[0,0,0],[0,0,0]])
+    col_status = np.array([[0,0,0,0],[0,0,0,0],[0,0,0,0]])
+    gs = GameState(board_status, row_status, col_status, True)
+    ans = mnmx.get_action(gs)
+    print("ans is ", end="")
+    print(ans)
+
+def test_step1():
+    mnmx = MinimaxBot(True)
+    board_status = np.array([[0,0,0],[0,0,0],[0,0,0]])
+    row_status = np.array([[0,0,0],[0,0,0],[0,0,0],[0,0,0]])
+    col_status = np.array([[0,0,0,0],[0,0,0,0],[0,0,0,0]])
+    gs = GameState(board_status, row_status, col_status, True)
+    ans = mnmx.get_action(gs)
+    print("ans is ", end="")
+    print(ans)        
+
+# test_current()
+mnmx = MinimaxBot(True)
+board_status = np.array([[0,0,0],[0,0,0],[0,0,0]])
+row_status = np.array([[0,0,0],[0,0,0],[0,0,0],[0,0,0]])
+col_status = np.array([[0,0,0,0],[0,0,0,0],[0,0,0,0]])
+gs = GameState(board_status, row_status, col_status, True)
+ans = mnmx.get_action(gs)
+print("ans is ", end="")
+print(ans)      
+gs = mnmx.get_next_state(gs,ans)
+ans = GameAction("col",(0,0))
+gs = mnmx.get_next_state(gs,ans)
+ans = mnmx.get_action(gs)
+print("ans is ", end="")
+print(ans)
+gs = mnmx.get_next_state(gs,ans)
+ans = GameAction("col",(1,0))
+gs = mnmx.get_next_state(gs,ans)
+ans = mnmx.get_action(gs)
+print("ans is ", end="")
+print(ans)
+gs = mnmx.get_next_state(gs,ans)
+ans = GameAction("col",(2,0))
+gs = mnmx.get_next_state(gs,ans)
+ans = mnmx.get_action(gs)
+print("ans is ", end="")
+print(ans)
+gs = mnmx.get_next_state(gs,ans)
+ans = GameAction("col",(0,1))
+gs = mnmx.get_next_state(gs,ans)
+ans = GameAction("col",(0,3))
+gs = mnmx.get_next_state(gs,ans)
+ans = mnmx.get_action(gs)
+print("ans is ", end="")
+print(ans)
+gs = mnmx.get_next_state(gs,ans)
+ans = GameAction("col",(0,2))
+gs = mnmx.get_next_state(gs,ans)
+ans = GameAction("row",(1,2))
+gs = mnmx.get_next_state(gs,ans)
+ans = GameAction("col",(2,1))
+gs = mnmx.get_next_state(gs,ans)
+ans = mnmx.get_action(gs)
+print("ans is ", end="")
+print(ans)
+gs = mnmx.get_next_state(gs,ans)
