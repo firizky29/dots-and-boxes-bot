@@ -1,6 +1,5 @@
 # Dots-and-Boxes
-
-
+Tugas Besar Mata Kuliah IF3170
 This repository contains python based interactive Dots-and-Boxes game.
 
 ## Running Dots-and-Boxes:
