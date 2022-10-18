@@ -3,6 +3,7 @@ import numpy as np
 from GameAction import GameAction
 from GameState import GameState
 from Bot import Bot
+from time import sleep
 
 class MinimaxBot(Bot):
     def __init__(self, isPlayer1: bool = False):
@@ -82,6 +83,7 @@ class MinimaxBot(Bot):
         """
         Mengembalikan aksi yang optimal untuk player 1 yaitu memaksimalkan (box player 1 - box player 2).
         """
+        print(state)
         if(self.OPT[self.group(state)] is not None):
             return self.OPT[self.group(state)]
         if(self.terminal_test(state)):
@@ -173,6 +175,8 @@ class MinimaxBot(Bot):
         """
         Mengembalikan aksi yang optimal untuk player 2 yaitu meminimalkan (box player 1 - box player 2).
         """
+        print(state)
+        sleep(5)
         if(self.OPT[self.group(state)] is not None):
             return self.OPT[self.group(state)]
         if(self.terminal_test(state)):
@@ -234,7 +238,10 @@ class MinimaxBot(Bot):
         """
         Returns action based on state.
         """
-        raise NotImplementedError()
+        if(self.isPlayer1):
+            return self.Max_state(state,-10,10)
+        else:
+            return self.Min_state(state,-10,10)
 
 mnmx = MinimaxBot(False)
 if(mnmx.OPT[3] is None):
