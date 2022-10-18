@@ -111,18 +111,14 @@ class State:
             self.value += 20
             if(act == 'row'):
                 if(i>0):
-                    if(abs(self.board[i-1][j]) == 3):
-                        self.value += 3
+                    self.value += abs(self.board[i-1][j])
                 if(i<self.nrowx-1):
-                    if(abs(self.board[i][j]) == 3):
-                        self.value += 3
+                    self.value += abs(self.board[i][j])
             else:
                 if(j<self.ncoly-1):
-                    if(abs(self.board[i][j]) == 3):
-                        self.value += 3
+                    self.value += abs(self.board[i][j])
                 if(j>0):
-                    if(abs(self.board[i][j-1]) == 3):
-                        self.value += 3
+                    self.value += abs(self.board[i][j-1])
         else:
             if(act == 'row'):
                 if(i>0):
@@ -248,8 +244,6 @@ class LocalSearchBot(Bot):
         while True:
             self.T = self.schedule(t)
             current_value = current.value
-            print(current.board)
-            print("current_value: ", current_value)
             if(self.T == 0):
                 return (best_action, current)
             
@@ -261,12 +255,9 @@ class LocalSearchBot(Bot):
                 last_action = copy.deepcopy(best_action)
                 current = copy.deepcopy(successor)
             else:
-                print(self.probability(deltaE, self.T))
                 if random.uniform(0.0, 1.0) <= self.probability(deltaE, self.T):
                     last_action = copy.deepcopy(best_action)
                     current = copy.deepcopy(successor)
-                else:
-                    print("ga ke pilih")
             t += 1
         
     
