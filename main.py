@@ -316,5 +316,5 @@ if __name__ == "__main__":
     PvB mode: game_instance = Dots_and_Boxes(None, BotName()) or game_instance = Dots_and_Boxes(BotName(), None)
     BvB mode: game_instance = Dots_and_Boxes(BotName(), BotName())
     """
-    game_instance = Dots_and_Boxes(MinimaxBot(True),None)
+    game_instance = Dots_and_Boxes(LocalSearchBot(),None)
     game_instance.mainloop()
