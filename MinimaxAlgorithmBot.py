@@ -113,10 +113,11 @@ class MinimaxBot(Bot):
                     if(next_value > state_value):
                         state_value = next_value
                         act_OPT = GameAction("row", (i,j))
-                    # if(state_value >= beta): 
-                    #     # self.OPT[self.group(state)] = act_OPT
-                    #     self.DELTA[self.group(state)] = state_value - self.current_utility(state)
-                    #     return act_OPT
+                    if(state_value >= beta): 
+                        # self.OPT[group_s] = act_OPT
+                        # self.DELTA[group_s] = state_value - self.current_utility(state)
+                        # print("pruning yes")
+                        return (act_OPT, state_value)
                     alpha = max(alpha, state_value)
         
         for i in range(yc):
@@ -130,13 +131,14 @@ class MinimaxBot(Bot):
                     if(next_value > state_value):
                         state_value = next_value
                         act_OPT = GameAction("col", (i,j))
-                    # if(state_value >= beta):
-                    #     if(i==yc-1 and j==xc-1):
-                    #         self.OPT[self.group(state)] = act_OPT
-                    #         self.DELTA[self.group(state)] = state_value - self.current_utility(state)
-                    #     # self.OPT[self.group(state)] = act_OPT
-                    #     self.DELTA[self.group(state)] = state_value - self.current_utility(state)
-                    #     return act_OPT
+                    if(state_value >= beta):
+                        if(i==yc-1 and j==xc-1):
+                            self.OPT[group_s] = act_OPT
+                            self.DELTA[group_s] = state_value - self.current_utility(state)
+                        # self.OPT[group_s] = act_OPT
+                        # self.DELTA[group_s] = state_value - self.current_utility(state)
+                        # print("pruning yes")
+                        return (act_OPT, state_value)
                     alpha = max(alpha, state_value)
         
         self.OPT[group_s] = act_OPT
@@ -208,10 +210,11 @@ class MinimaxBot(Bot):
                     if(next_value < state_value):
                         state_value = next_value
                         act_OPT = GameAction("row", (i,j))
-                    # if(state_value <= alpha): 
-                    #     # self.OPT[self.group(state)] = act_OPT
-                    #     self.DELTA[self.group(state)] = (state_value - self.current_utility(state))*(-1)
-                    #     return act_OPT
+                    if(state_value <= alpha): 
+                        # self.OPT[group_s] = act_OPT
+                        # self.DELTA[group_s] = (state_value - self.current_utility(state))*(-1)
+                        # print("pruning yes")
+                        return (act_OPT, state_value)
                     beta = min(beta, state_value)
         
         for i in range(yc):
@@ -225,13 +228,14 @@ class MinimaxBot(Bot):
                     if(next_value < state_value):
                         state_value = next_value
                         act_OPT = GameAction("col", (i,j))
-                    # if(state_value <= alpha):
-                    #     if(i==yc-1 and j==xc-1):
-                    #         self.OPT[self.group(state)] = act_OPT
-                    #         self.DELTA[self.group(state)] = (state_value - self.current_utility(state))*(-1)
-                    #     # self.OPT[self.group(state)] = act_OPT
-                    #     self.DELTA[self.group(state)] = (state_value - self.current_utility(state))*(-1)
-                    #     return act_OPT
+                    if(state_value <= alpha):
+                        if(i==yc-1 and j==xc-1):
+                            self.OPT[group_s] = act_OPT
+                            self.DELTA[group_s] = (state_value - self.current_utility(state))*(-1)
+                        # self.OPT[group_s] = act_OPT
+                        # self.DELTA[group_s] = (state_value - self.current_utility(state))*(-1)
+                        # print("pruning yes")
+                        return (act_OPT, state_value)
                     beta = min(beta, state_value)
 
         self.OPT[group_s] = act_OPT
@@ -265,6 +269,7 @@ class MinimaxBot(Bot):
         Returns action based on state.
         """
         act_i = None
+        self.isPlayer1 = state.player1_turn
         if(self.isPlayer1):
             try:
                 act_i, _ = func_timeout.func_timeout(5,self.Max_state, [state,-10,10])
@@ -278,14 +283,6 @@ class MinimaxBot(Bot):
         return GameAction(act_i.action_type, (act_i.position[1], act_i.position[0]))
         # return act_i
 
-# mnmx = MinimaxBot(False)
-# if(mnmx.OPT[3] is None):
-#     print("mnmx.OPT[3] is None")
-# mnmx.OPT[3] = GameAction("row", (3,2))
-# if(mnmx.OPT[3] is None):
-#     print("mnmx.OPT[3] is None")
-# gs = GameState([[1,-2,4],[1,2,2],[2,4,2]], [[0,0,1],[0,0,1],[0,1,0],[0,1,0]], [[0,1,1,1],[0,1,0,1],[1,1,1,1]], True)
-
 def test_group():
     gs = GameState([[1,-2,4],[1,2,2],[2,4,2]], [[0,0,1],[0,0,1],[0,1,0],[0,1,0]], [[0,1,1,1],[0,1,0,1],[1,1,1,1]], True)
     print(bin(mnmx.group(gs)))
@@ -296,115 +293,3 @@ def test_current():
     board_status = np.array([[1,-2,4],[1,2,2],[2,4,2]])
     gs = GameState(board_status, [[0,0,1],[0,0,1],[0,1,0],[0,1,0]], [[0,1,1,1],[0,1,0,1],[1,1,1,1]], True)
     print(mnmx.current_utility(gs))
-
-def test_step3():
-    mnmx = MinimaxBot(True)
-    board_status = np.array([[2,0,0],[1,0,0],[0,0,0]])
-    row_status = np.array([[1,0,0],[1,0,0],[0,0,0],[0,0,0]])
-    col_status = np.array([[0,0,0,0],[0,0,0,0],[0,0,0,0]])
-    gs = GameState(board_status, row_status, col_status, True)
-    ans = mnmx.get_action(gs)
-    print("ans is ", end="")
-    print(ans)
-
-def test_step1():
-    mnmx = MinimaxBot(True)
-    board_status = np.array([[0,0,0],[0,0,0],[0,0,0]])
-    row_status = np.array([[0,0,0],[0,0,0],[0,0,0],[0,0,0]])
-    col_status = np.array([[0,0,0,0],[0,0,0,0],[0,0,0,0]])
-    gs = GameState(board_status, row_status, col_status, True)
-    ans = mnmx.get_action(gs)
-    print("ans is ", end="")
-    print(ans)
-
-# 10 garis sblm finish
-# mnmx = MinimaxBot(True)
-# bs_14 = np.array([[3,3,-2],[-2,-2,2],[2,-2,2]])
-# rs_14 = np.array([[1,0,0],[0,1,0],[0,0,1],[0,1,1]])
-# cs_14 = np.array([[1,1,1,1],[1,1,0,1],[1,1,0,0]])
-# gs_14 = GameState(bs_14,rs_14,cs_14,True)
-# ans = mnmx.get_action(gs_14)
-# print("ans is ", end="")
-# print(ans)
-# gs_14 = mnmx.get_next_state(gs_14,ans)
-# ans = mnmx.get_action(gs_14)
-# print("ans is ", end="")
-# print(ans)
-# gs_14 = mnmx.get_next_state(gs_14,ans)
-# ans= mnmx.get_action(gs_14)
-# print("ans is ", end="")
-# print(ans)
-# gs_14 = mnmx.get_next_state(gs_14,ans)
-# ans = GameAction("row",(2,0))
-# gs_14 = mnmx.get_next_state(gs_14,ans)
-# ans = GameAction("row",(2,1))
-# gs_14 = mnmx.get_next_state(gs_14,ans)
-# ans= mnmx.get_action(gs_14)
-# print("ans is ", end="")
-# print(ans)
-# gs_14 = mnmx.get_next_state(gs_14,ans)
-# ans= mnmx.get_action(gs_14)
-# print("ans is ", end="")
-# print(ans)
-# gs_14 = mnmx.get_next_state(gs_14,ans)
-# ans= mnmx.get_action(gs_14)
-# print("ans is ", end="")
-# print(ans)
-# gs_14 = mnmx.get_next_state(gs_14,ans)
-# ans= mnmx.get_action(gs_14)
-# print("ans is ", end="")
-# print(ans)
-
-# test_current()
-# mnmx = MinimaxBot(True)
-# board_status = np.array([[0,0,0],[0,0,0],[0,0,0]])
-# row_status = np.array([[0,0,0],[0,0,0],[0,0,0],[0,0,0]])
-# col_status = np.array([[0,0,0,0],[0,0,0,0],[0,0,0,0]])
-# gs = GameState(board_status, row_status, col_status, True)
-# ans = mnmx.get_action(gs)
-# print("ans is ", end="")
-# print(ans)
-# print("DELTA ",end="")
-# print(mnmx.DELTA[10838015])    
-# print("current util", end="")
-# print(mnmx.current_utility(gs))  
-
-# # import sys
-# # print(sys.getrecursionlimit())
-# gs = mnmx.get_next_state(gs,ans)
-# ans = GameAction("col",(0,0))
-# gs = mnmx.get_next_state(gs,ans)
-# ans = mnmx.get_action(gs)
-# print("ans is ", end="")
-# print(ans)
-# gs = mnmx.get_next_state(gs,ans)
-# ans = GameAction("col",(1,0))
-# gs = mnmx.get_next_state(gs,ans)
-# ans = mnmx.get_action(gs)
-# print("ans is ", end="")
-# print(ans)
-# gs = mnmx.get_next_state(gs,ans)
-# ans = GameAction("col",(2,0))
-# gs = mnmx.get_next_state(gs,ans)
-# ans = mnmx.get_action(gs)
-# print("ans is ", end="")
-# print(ans)
-# gs = mnmx.get_next_state(gs,ans)
-# ans = GameAction("col",(0,1))
-# gs = mnmx.get_next_state(gs,ans)
-# ans = GameAction("col",(0,3))
-# gs = mnmx.get_next_state(gs,ans)
-# ans = mnmx.get_action(gs)
-# print("ans is ", end="")
-# print(ans)
-# gs = mnmx.get_next_state(gs,ans)
-# ans = GameAction("col",(0,2))
-# gs = mnmx.get_next_state(gs,ans)
-# ans = GameAction("row",(1,2))
-# gs = mnmx.get_next_state(gs,ans)
-# ans = GameAction("col",(2,1))
-# gs = mnmx.get_next_state(gs,ans)
-# ans = mnmx.get_action(gs)
-# print("ans is ", end="")
-# print(ans)
-# gs = mnmx.get_next_state(gs,ans)
