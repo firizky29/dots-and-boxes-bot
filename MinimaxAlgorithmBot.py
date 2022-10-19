@@ -5,6 +5,8 @@ from GameState import GameState
 from Bot import Bot
 from time import sleep
 from typing import Tuple
+import func_timeout
+import random
 
 class MinimaxBot(Bot):
     def __init__(self, isPlayer1: bool = False):
@@ -240,6 +242,20 @@ class MinimaxBot(Bot):
         return (act_OPT, state_value)
 
     
+    def random_action(self, state: GameState) -> GameAction:
+        acts = []
+        [yr, xr] = state.row_status.shape
+        [yc, xc] = state.col_status.shape
+        for i in range(yr):
+            for j in range(xr):
+                if (state.row_status[i][j]==0):
+                    acts.append(GameAction("row", (i,j)))
+        for i in range(yc):
+            for j in range(xc):
+                if(state.col_status[i][j]==0):
+                    acts.append(GameAction("col", (i,j)))
+        return random.choice(acts)
+
     """
     An interface for bot. Inherit it to create your own bots!
     """
@@ -250,11 +266,17 @@ class MinimaxBot(Bot):
         """
         act_i = None
         if(self.isPlayer1):
-            act_i, _ = self.Max_state(state,-10,10)
+            try:
+                act_i, _ = func_timeout.func_timeout(5,self.Max_state, [state,-10,10])
+            except func_timeout.FunctionTimedOut:
+                act_i = self.random_action(state)
         else:
-            act_i, _ = self.Min_state(state,-10,10)
-        # return GameAction(act_i.action_type, (act_i.position[1], act_i.position[0]))
-        return act_i
+            try:
+                act_i, _ = func_timeout.func_timeout(5,self.Min_state,[state,-10,10])
+            except func_timeout.FunctionTimedOut:
+                act_i = self.random_action(state)
+        return GameAction(act_i.action_type, (act_i.position[1], act_i.position[0]))
+        # return act_i
 
 # mnmx = MinimaxBot(False)
 # if(mnmx.OPT[3] is None):
@@ -296,42 +318,42 @@ def test_step1():
     print(ans)
 
 # 10 garis sblm finish
-mnmx = MinimaxBot(True)
-bs_14 = np.array([[3,3,-2],[-2,-2,2],[2,-2,2]])
-rs_14 = np.array([[1,0,0],[0,1,0],[0,0,1],[0,1,1]])
-cs_14 = np.array([[1,1,1,1],[1,1,0,1],[1,1,0,0]])
-gs_14 = GameState(bs_14,rs_14,cs_14,True)
-ans = mnmx.get_action(gs_14)
-print("ans is ", end="")
-print(ans)
-gs_14 = mnmx.get_next_state(gs_14,ans)
-ans = mnmx.get_action(gs_14)
-print("ans is ", end="")
-print(ans)
-gs_14 = mnmx.get_next_state(gs_14,ans)
-ans= mnmx.get_action(gs_14)
-print("ans is ", end="")
-print(ans)
-gs_14 = mnmx.get_next_state(gs_14,ans)
-ans = GameAction("row",(2,0))
-gs_14 = mnmx.get_next_state(gs_14,ans)
-ans = GameAction("row",(2,1))
-gs_14 = mnmx.get_next_state(gs_14,ans)
-ans= mnmx.get_action(gs_14)
-print("ans is ", end="")
-print(ans)
-gs_14 = mnmx.get_next_state(gs_14,ans)
-ans= mnmx.get_action(gs_14)
-print("ans is ", end="")
-print(ans)
-gs_14 = mnmx.get_next_state(gs_14,ans)
-ans= mnmx.get_action(gs_14)
-print("ans is ", end="")
-print(ans)
-gs_14 = mnmx.get_next_state(gs_14,ans)
-ans= mnmx.get_action(gs_14)
-print("ans is ", end="")
-print(ans)
+# mnmx = MinimaxBot(True)
+# bs_14 = np.array([[3,3,-2],[-2,-2,2],[2,-2,2]])
+# rs_14 = np.array([[1,0,0],[0,1,0],[0,0,1],[0,1,1]])
+# cs_14 = np.array([[1,1,1,1],[1,1,0,1],[1,1,0,0]])
+# gs_14 = GameState(bs_14,rs_14,cs_14,True)
+# ans = mnmx.get_action(gs_14)
+# print("ans is ", end="")
+# print(ans)
+# gs_14 = mnmx.get_next_state(gs_14,ans)
+# ans = mnmx.get_action(gs_14)
+# print("ans is ", end="")
+# print(ans)
+# gs_14 = mnmx.get_next_state(gs_14,ans)
+# ans= mnmx.get_action(gs_14)
+# print("ans is ", end="")
+# print(ans)
+# gs_14 = mnmx.get_next_state(gs_14,ans)
+# ans = GameAction("row",(2,0))
+# gs_14 = mnmx.get_next_state(gs_14,ans)
+# ans = GameAction("row",(2,1))
+# gs_14 = mnmx.get_next_state(gs_14,ans)
+# ans= mnmx.get_action(gs_14)
+# print("ans is ", end="")
+# print(ans)
+# gs_14 = mnmx.get_next_state(gs_14,ans)
+# ans= mnmx.get_action(gs_14)
+# print("ans is ", end="")
+# print(ans)
+# gs_14 = mnmx.get_next_state(gs_14,ans)
+# ans= mnmx.get_action(gs_14)
+# print("ans is ", end="")
+# print(ans)
+# gs_14 = mnmx.get_next_state(gs_14,ans)
+# ans= mnmx.get_action(gs_14)
+# print("ans is ", end="")
+# print(ans)
 
 # test_current()
 # mnmx = MinimaxBot(True)
