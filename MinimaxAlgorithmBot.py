@@ -1,9 +1,7 @@
-from os import stat
 import numpy as np
 from GameAction import GameAction
 from GameState import GameState
 from Bot import Bot
-from time import sleep
 from typing import Tuple
 import func_timeout
 import random
@@ -12,15 +10,12 @@ class MinimaxBot(Bot):
     def __init__(self, isPlayer1: bool = False):
         # var self.OPT: Group -> GameAction
         # var self.DELTA: Group -> Value of State yang didapat di masa depan.
-        # isPlayer1
         self.OPT = [None for i in range(2**24)]
-        # self.DELTA = [-10 for i in range(2**24)]
         self.DELTA = [-10 for i in range(2**24)]
         self.isPlayer1 = isPlayer1
 
-    # fungsi get_result, terminal-test, utility, Max-state, Min-state, group. tambah fungsi value
-    # current itu fungsi selish box player- lawan sekarang.
-    # actions diganti jadi looping aja
+    # fungsi get_next_state, terminal-test, group.
+    # tambah fungsi value,current_utility, Max-state, Min-state
     def group(self, s: GameState) -> int:
         group_s = 0
         ct = 0
@@ -89,9 +84,8 @@ class MinimaxBot(Bot):
 
     def Max_state(self, state: GameState, alpha: int, beta: int) -> Tuple[GameAction, int]:
         """
-        Mengembalikan aksi yang optimal untuk player 1 yaitu memaksimalkan (box player 1 - box player 2).
+        Mengembalikan aksi dan value yang optimal untuk player 1 yaitu memaksimalkan (box player 1 - box player 2).
         """
-        # print(state)
         group_s = self.group(state)
         if(self.OPT[group_s] is not None):
             return (self.OPT[group_s], self.value(state))
@@ -102,6 +96,7 @@ class MinimaxBot(Bot):
         act_OPT = None
         [yr, xr] = state.row_status.shape
         [yc, xc] = state.col_status.shape
+        # iterasi aksi yang mungkin
         for i in range(yr):
             for j in range(xr):
                 if (state.row_status[i][j]==0):
@@ -114,8 +109,6 @@ class MinimaxBot(Bot):
                         state_value = next_value
                         act_OPT = GameAction("row", (i,j))
                     if(state_value >= beta): 
-                        # self.OPT[group_s] = act_OPT
-                        # self.DELTA[group_s] = state_value - self.current_utility(state)
                         # print("pruning yes")
                         return (act_OPT, state_value)
                     alpha = max(alpha, state_value)
@@ -135,17 +128,12 @@ class MinimaxBot(Bot):
                         if(i==yc-1 and j==xc-1):
                             self.OPT[group_s] = act_OPT
                             self.DELTA[group_s] = state_value - self.current_utility(state)
-                        # self.OPT[group_s] = act_OPT
-                        # self.DELTA[group_s] = state_value - self.current_utility(state)
                         # print("pruning yes")
                         return (act_OPT, state_value)
                     alpha = max(alpha, state_value)
         
         self.OPT[group_s] = act_OPT
         self.DELTA[group_s] = state_value - self.current_utility(state)
-        # print(state)
-        # print("Optimal: ", end="")
-        # print(self.OPT[self.group(state)])
         return (act_OPT, state_value)
 
     def get_next_state(self, state: GameState, action: GameAction) -> GameState:
@@ -187,8 +175,6 @@ class MinimaxBot(Bot):
         """
         Mengembalikan aksi yang optimal untuk player 2 yaitu meminimalkan (box player 1 - box player 2).
         """
-        # print(state)
-        # sleep(5)
         group_s = self.group(state)
         if(self.OPT[group_s] is not None):
             return (self.OPT[group_s], self.value(state))
@@ -211,8 +197,6 @@ class MinimaxBot(Bot):
                         state_value = next_value
                         act_OPT = GameAction("row", (i,j))
                     if(state_value <= alpha): 
-                        # self.OPT[group_s] = act_OPT
-                        # self.DELTA[group_s] = (state_value - self.current_utility(state))*(-1)
                         # print("pruning yes")
                         return (act_OPT, state_value)
                     beta = min(beta, state_value)
@@ -232,17 +216,12 @@ class MinimaxBot(Bot):
                         if(i==yc-1 and j==xc-1):
                             self.OPT[group_s] = act_OPT
                             self.DELTA[group_s] = (state_value - self.current_utility(state))*(-1)
-                        # self.OPT[group_s] = act_OPT
-                        # self.DELTA[group_s] = (state_value - self.current_utility(state))*(-1)
                         # print("pruning yes")
                         return (act_OPT, state_value)
                     beta = min(beta, state_value)
 
         self.OPT[group_s] = act_OPT
-        self.DELTA[group_s] = (state_value - self.current_utility(state))*(-1)
-        # print(state)
-        # print("Optimal: ", end="")
-        # print(self.OPT[self.group(state)])        
+        self.DELTA[group_s] = (state_value - self.current_utility(state))*(-1)    
         return (act_OPT, state_value)
 
     
