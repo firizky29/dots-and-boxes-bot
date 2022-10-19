@@ -8,7 +8,7 @@ from Bot import Bot
 import math
 import random
 import numpy as np
-
+import func_timeout
 
 
 class State:
@@ -162,8 +162,12 @@ class LocalSearchBot(Bot):
         # restart temperature
         self.T = self.get_best_temperature(state)
         current = GameState(state.board_status.copy(), state.row_status.copy(), state.col_status.copy(), state.player1_turn)
-        (act, final_state) = self.simulated_annealing(current)
-        return GameAction(act.action_type, (act.position[1], act.position[0]))
+        try:
+            (act, final_state) = func_timeout.func_timeout(5, self.simulated_annealing, args=[current])
+        except:
+            (act, final_state) = self.get_initial_state(current)
+        finally:
+            return GameAction(act.action_type, (act.position[1], act.position[0]))
 
     
     def probability(self, deltaE, temperature):

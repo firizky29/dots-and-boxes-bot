@@ -317,7 +317,7 @@ if __name__ == "__main__":
     BvB mode: game_instance = Dots_and_Boxes(BotName(), BotName())
     """
     # game_instance = Dots_and_Boxes(MinimaxBot(),LocalSearchBot())
-    game_instance = Dots_and_Boxes(MinimaxBot(),None)
+    # game_instance = Dots_and_Boxes(MinimaxBot(),None)
     # game_instance = Dots_and_Boxes(None,MinimaxBot(False))
-    # game_instance = Dots_and_Boxes(LocalSearchBot(),None)
+    game_instance = Dots_and_Boxes(LocalSearchBot(),None)
     game_instance.mainloop()
