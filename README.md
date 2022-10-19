@@ -7,6 +7,7 @@ This repository contains python based interactive Dots-and-Boxes game.
 ```
 git clone https://github.com/AbdiHaryadi/Dots-and-Boxes.git
 cd dots-and-boxes-bot
+pip install func_timeout
 python main.py
 ```
 
